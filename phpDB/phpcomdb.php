@@ -1,27 +1,32 @@
 <?php
-$nome = "NOME QUALQUER";
-$email = "EMAIL QUALQUER";
+header("Content-Type: application/json; charset=utf-8");
 
 $arquivo = "database.json";
-$conteudo = [];
 
-if (file_exists($arquivo)) {
-    $conteudo = file_get_contents($arquivo);
-    $conteudo = json_decode($conteudo, true);
-    if (!is_array($conteudo)) {
-        $conteudo = [];
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $conteudoAtual = file_exists($arquivo) ? file_get_contents($arquivo) : "[]";
+    $arrayDados = json_decode($conteudoAtual, true);
+    if (!is_array($arrayDados))
+        $arrayDados = [];
+
+    $nome = $_POST['nome'] ?? null;
+    $email = $_POST['email'] ?? null;
+
+    if ($nome && $email) {
+        $novoDado = ["nome" => $nome, "email" => $email];
+        $arrayDados[] = $novoDado;
+
+        file_put_contents($arquivo, json_encode($arrayDados, JSON_PRETTY_PRINT));
+        echo json_encode(["mensagem" => "salvo com sucesso"]);
+    } else {
+        echo json_encode(["erro" => "faltou nome ou email"]);
     }
-} else {
-    $conteudo = [];
 }
 
-if ($nome && $email) {
-    $dados = ["nome" => $nome, "email" => $email];
-    $conteudo[] = $dados;
-
-    file_put_contents($arquivo, json_encode($conteudo, JSON_PRETTY_PRINT));
-} else {
-    echo "Nenhum dado foi inserido";
+if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+    if (file_exists($arquivo)) {
+        echo file_get_contents($arquivo);
+    } else {
+        echo "[]";
+    }
 }
-
-print_r($conteudo);
